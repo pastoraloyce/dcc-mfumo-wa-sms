@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="sw" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCC Church SMS System - Login</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-blue: #0D47A1;
+            --deep-dark-blue: #0A3780;
+            --accent-yellow: #FFCC00;
+            --hover-yellow: #E6B800;
+            --silver: #BDC3C7;
+            --white: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary-blue), #051937);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: var(--white);
+            transition: background 0.5s ease;
+        }
+
+        /* Dark Mode Background */
+        [data-bs-theme="dark"] body {
+            background: linear-gradient(135deg, #020b18, #051937);
+        }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-content .fa-church {
+            color: var(--accent-yellow);
+        }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            margin: auto;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        [data-bs-theme="dark"] .glass-card {
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 12px 15px;
+            transition: 0.3s;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 12px rgba(255, 204, 0, 0.5);
+            border-color: var(--accent-yellow);
+            background: var(--white);
+        }
+
+        .input-group-text {
+            background: var(--deep-dark-blue);
+            color: var(--accent-yellow);
+            border: none;
+        }
+
+        /* Yellow Primary Button */
+        .btn-primary-custom {
+            background-color: var(--accent-yellow);
+            color: #051937;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: var(--hover-yellow);
+            color: #000000;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 204, 0, 0.4);
+        }
+        
+        .forgot-link:hover {
+            color: var(--accent-yellow) !important;
+        }
+
+        .btn-cancel {
+            background-color: transparent;
+            border: 1px solid var(--silver);
+            color: var(--white);
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .btn-cancel:hover {
+            background-color: var(--silver);
+            color: #333;
+        }
+
+        /* Dashboard Preview */
+        #dashboardPreview {
+            display: none;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.25);
+            border-color: var(--accent-yellow);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: var(--accent-yellow);
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            padding: 20px 0;
+            text-align: center;
+            margin-top: auto;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Utility */
+        .hidden { display: none !important; }
+        .text-silver { color: var(--silver); }
+        .text-accent-yellow { color: var(--accent-yellow) !important; }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="container header-content">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-church fa-2x me-2"></i>
+                <h4 class="mb-0 d-none d-sm-block fw-bold">DCC Church SMS System</h4>
+            </div>
+            <div class="text-end">
+                <span id="currentDateTime" class="fw-bold d-block text-accent-yellow"></span>
+                <button id="themeToggle" class="btn btn-sm btn-outline-light mt-1">
+                    <i class="fas fa-moon"></i> Mode
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container flex-grow-1 d-flex align-items-center justify-content-center mt-4 mb-4">
+        
+        <!-- Login Form Section -->
+        <div class="glass-card" id="loginSection">
+            <div class="text-center mb-4">
+                <i class="fas fa-envelope-open-text fa-3x mb-3 text-accent-yellow"></i>
+                <h3 class="fw-bold">Karibu Sana</h3>
+                <p class="small text-silver">Karibu kwenye DCC Church SMS System. Mfumo huu umetengenezwa kusaidia mawasiliano ya kanisa kwa usalama, haraka na ufanisi.</p>
+            </div>
+
+            <!-- Notifications -->
+            <div id="alertBox" class="alert hidden" role="alert"></div>
+
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Jina la Mtumiaji (Username)</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        <input type="text" id="username" class="form-control" placeholder="Ingiza jina lako" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nenosiri (Password)</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input type="password" id="password" class="form-control" placeholder="••••••••">
+                        <button class="btn btn-secondary" type="button" id="togglePassword" style="background: var(--deep-dark-blue); border:none; color: var(--accent-yellow);">
+                            <i class="fas fa-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="rememberMe">
+                        <label class="form-check-label text-silver small" for="rememberMe">Kumbuka Taarifa</label>
+                    </div>
+                    <a href="#" class="text-light text-decoration-none small forgot-link transition">Umesahau Nenosiri?</a>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary-custom" id="loginBtn">
+                        <span id="btnText">Ingia Kwenye Mfumo</span>
+                        <span id="btnSpinner" class="spinner-border spinner-border-sm hidden" role="status" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="btn btn-cancel" id="cancelBtn">Ghairi</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Dashboard Preview Section -->
+        <div class="w-100" id="dashboardPreview">
+            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+                <h2 class="fw-bold">Muhtasari wa Mfumo (Dashboard)</h2>
+                <button class="btn btn-outline-warning btn-sm" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Ondoka</button>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-4 col-sm-6">
+                    <div class="stat-card">
+                        <i class="fas fa-paper-plane stat-icon"></i>
+                        <h3 class="fw-bold">12,450</h3>
+                        <p class="mb-0 text-silver">Jumla ya SMS Zilizotumwa</p>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <div class="stat-card">
+                        <i class="fas fa-envelope-open stat-icon"></i>
+                        <h3 class="fw-bold">150</h3>
+                        <p class="mb-0 text-silver">SMS za Leo</p>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <div class="stat-card">
+                        <i class="fas fa-calendar-week stat-icon"></i>
+                        <h3 class="fw-bold">850</h3>
+                        <p class="mb-0 text-silver">SMS za Wiki Hii</p>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <div class="stat-card">
+                        <i class="fas fa-calendar-alt stat-icon"></i>
+                        <h3 class="fw-bold">3,200</h3>
+                        <p class="mb-0 text-silver">SMS za Mwezi Huu</p>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <div class="stat-card">
+                        <i class="fas fa-wallet stat-icon"></i>
+                        <h3 class="fw-bold text-accent-yellow">8,550</h3>
+                        <p class="mb-0 text-silver">Salio la SMS Kwenye Akaunti</p>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <div class="stat-card">
+                        <i class="fas fa-users stat-icon"></i>
+                        <h3 class="fw-bold">1,200</h3>
+                        <p class="mb-0 text-silver">Idadi ya Wanachama</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p class="mb-1">&copy; 2026 <span class="text-accent-yellow">DCC Church SMS System</span> | Disciples Community Church Kisesa Mwanza</p>
+            <p class="mb-1 small">Msimamizi: Pastor Aloyce | Simu: +255 757 344 860</p>
+            <p class="mb-0 small fst-italic text-silver">"Powered by DCC Technology"</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script>
+        // Update Date and Time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit', second:'2-digit' };
+            document.getElementById('currentDateTime').innerText = now.toLocaleDateString('sw-TZ', options);
+        }
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+
+        // Dark/Light Mode Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+
+        themeToggle.addEventListener('click', () => {
+            if (htmlElement.getAttribute('data-bs-theme') === 'light') {
+                htmlElement.setAttribute('data-bs-theme', 'dark');
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i> Mode';
+            } else {
+                htmlElement.setAttribute('data-bs-theme', 'light');
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i> Mode';
+            }
+        });
+
+        // Show/Hide Password
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eyeIcon');
+
+        togglePassword.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            eyeIcon.classList.toggle('fa-eye-slash');
+        });
+
+        // Login Logic & Validation
+        const loginForm = document.getElementById('loginForm');
+        const usernameInput = document.getElementById('username');
+        const alertBox = document.getElementById('alertBox');
+        const loginSection = document.getElementById('loginSection');
+        const dashboardPreview = document.getElementById('dashboardPreview');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
+
+        function showAlert(message, type) {
+            alertBox.className = `alert alert-${type}`;
+            alertBox.innerText = message;
+            alertBox.classList.remove('hidden');
+        }
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            alertBox.classList.add('hidden');
+
+            const user = usernameInput.value.trim();
+            const pass = passwordInput.value.trim();
+
+            // Validation
+            if (user === '' || pass === '') {
+                showAlert('Tafadhali jaza Username na Password ili kuingia.', 'danger');
+                return;
+            }
+
+            // Simulate Loading Animation
+            btnText.innerText = 'Inapakia...';
+            btnSpinner.classList.remove('hidden');
+            document.getElementById('loginBtn').disabled = true;
+
+            setTimeout(() => {
+                // Simulate Success
+                showAlert('Umefanikiwa kuingia!', 'success');
+                
+                setTimeout(() => {
+                    // Transition to Dashboard
+                    loginSection.classList.add('hidden');
+                    dashboardPreview.style.display = 'block';
+                    
+                    // Reset Button
+                    btnText.innerText = 'Ingia Kwenye Mfumo';
+                    btnSpinner.classList.add('hidden');
+                    document.getElementById('loginBtn').disabled = false;
+                    loginForm.reset();
+                    alertBox.classList.add('hidden');
+                }, 1000);
+
+            }, 2000);
+        });
+
+        // Cancel Button
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            loginForm.reset();
+            alertBox.classList.add('hidden');
+        });
+
+        // Logout Button (Preview Return)
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            dashboardPreview.style.display = 'none';
+            loginSection.classList.remove('hidden');
+        });
+
+    </script>
+</body>
+</html>
