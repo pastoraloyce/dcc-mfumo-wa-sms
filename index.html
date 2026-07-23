@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DCC CHURCH KISESA MWANZA MULT SMS SYSTEM</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -12,12 +14,12 @@
                 extend: {
                     colors: {
                         primary: {
-                            DEFAULT: '#EA580C', /* Orange Kuu */
+                            DEFAULT: '#EA580C',
                             dark: '#C2410C',
                             light: '#FB923C'
                         },
                         secondary: {
-                            DEFAULT: '#1E40AF', /* Blue Kuu */
+                            DEFAULT: '#1E40AF',
                             dark: '#1E3A8A',
                             light: '#3B82F6'
                         }
@@ -28,6 +30,11 @@
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Firebase JS SDK (v8 Compat kwa urahisi kwenye single file HTML) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -71,7 +78,6 @@
     </div>
 
     <div class="flex-grow flex flex-col md:flex-row min-h-screen pt-16">
-
         <header class="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-40 transition-colors shadow-sm px-4 flex items-center justify-between glass">
             <div class="flex items-center gap-3">
                 <button onclick="toggleSidebar()" class="md:hidden text-xl p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
@@ -153,7 +159,6 @@
         </aside>
 
         <main class="flex-grow p-4 md:p-6 space-y-6 overflow-x-hidden" id="app-content">
-
             <section id="tab-dashboard" class="tab-content space-y-6">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
@@ -528,6 +533,8 @@
                             <label class="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-white text-xs font-semibold rounded-xl cursor-pointer transition flex items-center gap-1">
                                 <i class="fas fa-upload"></i> Restore Data <input type="file" id="restore-file-input" onchange="restoreDatabase(event)" class="hidden">
                             </label>
+                            <!-- Kitufe kipya cha Firebase Restore -->
+                            <button onclick="restoreFromFirebase()" class="px-4 py-2 bg-secondary hover:bg-secondary-dark text-white text-xs font-semibold rounded-xl transition"><i class="fas fa-cloud-download-alt"></i> Restore from Firebase</button>
                         </div>
                         <div class="pt-2">
                             <button onclick="clearAllDataDatabase()" class="px-4 py-2 bg-rose-50 text-rose-600 text-xs font-medium rounded-xl hover:bg-rose-100 transition"><i class="fas fa-trash-can"></i> Futa Data Zote za Mfumo</button>
@@ -588,8 +595,63 @@
         // SYSTEM DATABASE IN-MEMORY OBJECTS
         let members = [];
         let smsLogs = [];
-        let currentFontSizeIndex = 1; // 0: Small, 1: Normal, 2: Large
+        let currentFontSizeIndex = 1;
         const fontSizes = ['text-sm', 'text-base', 'text-lg'];
+
+        // ==========================================
+        // FIREBASE INITIALIZATION & SYNC ENGINE
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCv01cdwWFqeDcvMAkILY3K4G8yKJWwL6k",
+            authDomain: "pastoraloyce-3530f.firebaseapp.com",
+            projectId: "pastoraloyce-3530f",
+            storageBucket: "pastoraloyce-3530f.firebasestorage.app",
+            messagingSenderId: "978341477941",
+            appId: "1:978341477941:web:289e3b0671f00e52907b7c",
+            measurementId: "G-XYK8ZL0JSJ"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        // Push to Firebase (Background Task)
+        function syncToFirebase() {
+            db.collection("dcc_system").doc("live_data").set({
+                members: members,
+                smsLogs: smsLogs,
+                lastSync: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                console.log("Data zimehifadhiwa Firebase kikamilifu.");
+            }).catch((error) => {
+                console.error("Firebase Sync Error: ", error);
+            });
+        }
+
+        // Pull from Firebase manually if needed (Settings Tab)
+        function restoreFromFirebase() {
+            showToast("Inavuta data kutoka Firebase...", "info");
+            db.collection("dcc_system").doc("live_data").get().then((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    if(data.members) members = data.members;
+                    if(data.smsLogs) smsLogs = data.smsLogs;
+                    
+                    localStorage.setItem('dcc_members', JSON.stringify(members));
+                    localStorage.setItem('dcc_sms_logs', JSON.stringify(smsLogs));
+                    
+                    showToast("Data zimerudishwa kutoka Firebase kikamilifu!", "success");
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast("Hakuna data iliyohifadhiwa Firebase bado.", "error");
+                }
+            }).catch((error) => {
+                console.error("Error getting document:", error);
+                showToast("Imeshindwa kuvuta data Firebase.", "error");
+            });
+        }
+        // ==========================================
 
         // INITIALIZER ON APP LOAD
         window.addEventListener('DOMContentLoaded', () => {
@@ -602,7 +664,6 @@
             if(localStorage.getItem('dcc_members')) {
                 members = JSON.parse(localStorage.getItem('dcc_members'));
             } else {
-                // Seed some dummy records for initialization/preview if empty
                 members = [
                     { id: 1001, name: "Emmanuel Joseph", gender: "Me", phone: "0757344860", dept: "Vijana", cgn: "Kanisani", date: "2026-05-15", status: "Active" },
                     { id: 1002, name: "Mary Yohana", gender: "Ke", phone: "0623456789", dept: "Wamama", cgn: "Kwa Mama Gift", date: "2026-06-01", status: "Active" },
@@ -626,7 +687,6 @@
             updateSmsFilters();
             renderSmsHistory();
 
-            // Hide loader with a sweet fade out animation
             setTimeout(() => {
                 const loader = document.getElementById('loader');
                 loader.classList.add('opacity-0');
@@ -638,7 +698,7 @@
         function handleLogin(e) {
             e.preventDefault();
             const pass = document.getElementById('login-password').value;
-            if(pass === "dcc2026" || pass === "admin") { // Default system fallback passwords
+            if(pass === "dcc2026" || pass === "admin") {
                 localStorage.setItem('dcc_authenticated', 'true');
                 document.getElementById('login-modal').classList.add('hidden');
                 showToast("Umeingia kwa mafanikio kama Admin!", "success");
@@ -652,7 +712,7 @@
             location.reload();
         }
 
-        // TABS NAVIGATION CONTROLLER (SPA INTERACTION)
+        // TABS NAVIGATION CONTROLLER
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
@@ -671,7 +731,6 @@
             if(tabId === 'bulksms') {
                 updateSmsFilters();
             }
-            // Close mobile sidebar if open
             if(window.innerWidth < 768) {
                 toggleSidebar(false);
             }
@@ -731,7 +790,6 @@
             const cgn = document.getElementById('m-cgn').value;
             const status = document.getElementById('m-status').value;
 
-            // Strict Validation Rules
             if(!name || !gender || !phone || !dept || !cgn) {
                 showToast("Tafadhali jaza nyanja zote zenye nyota (*)", "error");
                 return;
@@ -742,7 +800,6 @@
             }
 
             if(mode === 'create') {
-                // Check Duplicates
                 if(members.some(m => m.phone === phone)) {
                     showToast(`Namba ya simu ${phone} tayari imeshasajiliwa kwa mshirika mwingine!`, "error");
                     return;
@@ -755,7 +812,6 @@
                 addAuditLog(`Amesajiliwa mshirika mpya: ${name}`);
             } else {
                 const editId = parseInt(document.getElementById('edit-id').value);
-                // Duplicate check excluding self
                 if(members.some(m => m.phone === phone && m.id !== editId)) {
                     showToast(`Namba ya simu ${phone} inatumiwa na mshirika mwingine!`, "error");
                     return;
@@ -769,6 +825,7 @@
             }
 
             localStorage.setItem('dcc_members', JSON.stringify(members));
+            syncToFirebase(); // <--- Firebase Background Sync
             resetForm();
             renderTable();
             updateDashboardStats();
@@ -800,6 +857,7 @@
             if(confirm(`Je, una uhakika unataka kumfuta mshirika huyu: ${m.name}? Kitendo hiki hakirudi nyuma.`)) {
                 members = members.filter(m => m.id !== id);
                 localStorage.setItem('dcc_members', JSON.stringify(members));
+                syncToFirebase(); // <--- Firebase Background Sync
                 showToast("Mshirika amefutwa kabisa kwenye mfumo.", "info");
                 addAuditLog(`Amefutwa mshirika wa ID: ${id}`);
                 renderTable();
@@ -817,7 +875,7 @@
             generateAutoId();
         }
 
-        // LIVE SEARCH EVERYWHERE & TABLE PAGINATION ENGINE
+        // LIVE SEARCH & TABLE PAGINATION ENGINE
         let tablePage = 1;
         const rowsPerPage = 10;
         let globalSearchQuery = "";
@@ -832,7 +890,6 @@
             const searchVal = document.getElementById('table-search').value.trim().toLowerCase();
             const sortVal = document.getElementById('table-sort').value;
             
-            // Filter
             let filtered = members.filter(m => {
                 const matchesGlobal = globalSearchQuery === "" || 
                     m.name.toLowerCase().includes(globalSearchQuery) || 
@@ -849,12 +906,10 @@
                 return matchesGlobal && matchesTable;
             });
 
-            // Sorting
             if(sortVal === 'id-asc') filtered.sort((a,b) => a.id - b.id);
             if(sortVal === 'id-desc') filtered.sort((a,b) => b.id - a.id);
             if(sortVal === 'name-asc') filtered.sort((a,b) => a.name.localeCompare(b.name));
 
-            // Pagination setup
             const totalItems = filtered.length;
             if(totalItems === 0) {
                 document.getElementById('table-empty-state').classList.remove('hidden');
@@ -896,7 +951,6 @@
 
             document.getElementById('table-info-text').innerText = `Inaonyesha ${startIdx + 1} hadi ${endIdx} kati ya ${totalItems}`;
             
-            // Build Pagination Component Buttons
             let pagHTML = "";
             for(let i=1; i<=totalPages; i++) {
                 pagHTML += `<button onclick="goToTablePage(${i})" class="px-2.5 py-1 rounded ${tablePage === i ? 'bg-primary text-white font-bold' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 hover:bg-gray-200'}">${i}</button>`;
@@ -1002,12 +1056,10 @@
                 previewEl.innerText = "...ujumbe wako utaonekana hapa...";
                 return;
             }
-            // Dynamic substitution preview using a placeholder name
             let substituted = val.replace(/{JINA}/g, "Emmanuel Joseph");
             previewEl.innerText = substituted;
         }
 
-        // PRE-CONFIGURED PRE-DEFINED SMS TEMPLATES
         const templates = {
             announcement: "Bwana Yesu asifiwe {JINA}. Tunakukumbusha kufika kwenye ibada kuu ya Jumapili hii DCC Kisesa kuanzia saa 2:00 asubuhi. Karibu sana ubarikiwe.",
             meeting: "Shalom mwanaidara {JINA}. Kuna kikao muhimu cha idara yetu siku ya Jumamosi saa 10:00 jioni kanisani. Tafadhalizingatia muda.",
@@ -1036,7 +1088,6 @@
             countSmsChars("");
         }
 
-        // TRIGGER BULK SMS VIA PHONE SMS APP (CROSS PLATFORM SMS INTENT ENGINE)
         function triggerBulkSmsIntent() {
             const msg = document.getElementById('sms-message').value.trim();
             if(selectedSmsPhones.length === 0) {
@@ -1048,13 +1099,8 @@
                 return;
             }
 
-            // MABORESHO MAKUBWA: Kutumia alama ya mkato (,) inayokubalika na mifumo ya sasa ya Android na iOS
             const joinedPhones = selectedSmsPhones.join(',');
-            
-            // Kagua mfumo wa uendeshaji (OS) wa kifaa
             const isUserApple = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            
-            // Tengeneza URL Intent sahihi kwa ajili ya bando la kawaida
             const encodedMsg = encodeURIComponent(msg);
             let smsUrl = "";
             
@@ -1064,7 +1110,6 @@
                 smsUrl = `sms:${joinedPhones}?body=${encodedMsg}`;
             }
 
-            // Record execution inside local system logging
             const logEntry = {
                 timestamp: new Date().toLocaleString('sw-TZ'),
                 group: `Watu walengwa (${selectedSmsPhones.length})`,
@@ -1073,12 +1118,12 @@
             };
             smsLogs.unshift(logEntry);
             localStorage.setItem('dcc_sms_logs', JSON.stringify(smsLogs));
+            syncToFirebase(); // <--- Firebase Background Sync
             renderSmsHistory();
 
             showToast("Programu ya simu ya SMS inafunguka...", "success");
             addAuditLog(`Mlipuko wa SMS umerushwa kwa walengwa ${selectedSmsPhones.length}`);
 
-            // Kufungua App ya Ujumbe kwenye simu
             window.location.href = smsUrl;
         }
 
@@ -1115,7 +1160,6 @@
             document.getElementById('pct-me').innerText = `${mePct}% ya wote`;
             document.getElementById('pct-ke').innerText = `${kePct}% ya wote`;
 
-            // Auto calculations details panel on report tab
             const activeCount = members.filter(m => m.status === 'Active').length;
             const inactiveCount = members.filter(m => m.status === 'Inactive').length;
 
@@ -1143,16 +1187,15 @@
                 type: 'bar',
                 data: {
                     labels: ['Vijana', 'Wamama', 'Wanaume', 'Watoto'],
-                    datasets: [{ label: 'Idadi ya Washirika', data: [0,0,0,0], backgroundColor: '#1E40AF' }] /* Updated palette config secondary chart color */
+                    datasets: [{ label: 'Idadi ya Washirika', data: [0,0,0,0], backgroundColor: '#1E40AF' }]
                 },
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
             });
 
-            // Report View Charts
             const ctxStatus = document.getElementById('statusReportChart').getContext('2d');
             sChart = new Chart(ctxStatus, {
                 type: 'pie',
-                data: { labels: ['Active', 'Inactive'], datasets: [{ data: [0,0], backgroundColor: ['#EA580C', '#F59E0B'] }] }, /* Updated colors palette dynamic config primary placement fallback */
+                data: { labels: ['Active', 'Inactive'], datasets: [{ data: [0,0], backgroundColor: ['#EA580C', '#F59E0B'] }] },
                 options: { responsive: true, maintainAspectRatio: false }
             });
 
@@ -1239,7 +1282,7 @@
                 filename += ".csv";
             } else {
                 content = JSON.stringify(members, null, 2);
-                filename += ".xls"; // Basic spreadsheet structure layout download compatibility format injection fallback
+                filename += ".xls";
             }
             const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
@@ -1250,7 +1293,6 @@
             showToast("Faili lako linapakuliwa vyema...", "success");
         }
 
-        // DATABASE SETTINGS CONFIGURATION ACTIONS
         function backupDatabase() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ members, smsLogs }));
             const dlAnchorElem = document.createElement('a');
@@ -1272,6 +1314,7 @@
                         if(parsed.smsLogs) smsLogs = parsed.smsLogs;
                         localStorage.setItem('dcc_members', JSON.stringify(members));
                         localStorage.setItem('dcc_sms_logs', JSON.stringify(smsLogs));
+                        syncToFirebase(); // <--- Firebase Background Sync
                         showToast("Database imerejeshwa (Restored) kwa mafanikio makubwa!", "success");
                         location.reload();
                     } else {
@@ -1287,6 +1330,9 @@
         function clearAllDataDatabase() {
             if(confirm("Je, una uhakika kabisa unataka kufuta data zote za washirika na meseji kwenye mfumo huu? Hatua hii haina marekebisho.")) {
                 localStorage.clear();
+                members = [];
+                smsLogs = [];
+                syncToFirebase(); // <--- Firebase Background Sync itasafisha pia mtandaoni
                 alert("Data zote zimefutwa. Mfumo utajirudia upya.");
                 location.reload();
             }
@@ -1294,4 +1340,3 @@
     </script>
 </body>
 </html>
-
