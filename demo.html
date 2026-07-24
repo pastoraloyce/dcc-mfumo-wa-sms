@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="sw" class="scroll-smooth">
-<head[cite: 5]>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DCC CHURCH KISESA MWANZA MULT SMS SYSTEM</title>
@@ -338,16 +338,29 @@
                 <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-4">
                     <h3 class="font-bold text-base border-b dark:border-gray-700 pb-2 text-secondary"><i class="fas fa-paper-plane"></i> Tuma Ujumbe wa Kikundi (Bulk SMS) & Vichujio</h3>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Chagua Kundi (Filter kwa Idara/Kikundi)</label>
-                            <select id="sms-filter-group" class="w-full px-3 py-2 border rounded-xl bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-sm">
-                                <option value="all">Washirika Wote</option>
+                            <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Chuja kwa Idara/Kikundi</label>
+                            <select id="sms-filter-group" onchange="updateSmsRecipientCount()" class="w-full px-3 py-2 border rounded-xl bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-sm">
+                                <option value="all">Idara Zote</option>
                                 <option value="Vijana">Vijana</option>
                                 <option value="Wamama">Wamama</option>
                                 <option value="Wanaume">Wanaume</option>
                                 <option value="Watoto">Watoto</option>
                                 <option value="Kiongozi">Kiongozi</option>
+                                <option value="Wageni waliojiunga nasi">Wageni waliojiunga nasi</option>
+                                <option value="Wageni wa kupita">Wageni wa kupita</option>
+                                <option value="Washirika wanaosuasua">Washirika wanaosuasua</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Chuja kwa Kituo cha CGN</label>
+                            <select id="sms-filter-cgn" onchange="updateSmsRecipientCount()" class="w-full px-3 py-2 border rounded-xl bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-sm">
+                                <option value="all">Vituo Vyote</option>
+                                <option value="Kwa Mama Bhoke">Kwa Mama Bhoke</option>
+                                <option value="Kwa Mama Gift">Kwa Mama Gift</option>
+                                <option value="Kanisani">Kanisani</option>
+                                <option value="Online">Online</option>
                                 <option value="Wageni waliojiunga nasi">Wageni waliojiunga nasi</option>
                                 <option value="Wageni wa kupita">Wageni wa kupita</option>
                                 <option value="Washirika wanaosuasua">Washirika wanaosuasua</option>
@@ -371,7 +384,7 @@
 
                     <div class="flex justify-between items-center">
                         <span id="sms-recipient-count" class="text-xs font-bold text-gray-500">Wapokeaji: 0</span>
-                        <button onclick="triggerFilteredBulkSms()" class="px-6 py-2.5 bg-primary text-white text-xs font-bold rounded-xl shadow-md"><i class="fas fa-paper-plane"></i> Tuma SMS kwa Kundi Lililochujwa</button>
+                        <button onclick="triggerFilteredBulkSms()" class="px-6 py-2.5 bg-primary text-white text-xs font-bold rounded-xl shadow-md"><i class="fas fa-paper-plane"></i> Tuma SMS kwa Waliomo</button>
                     </div>
                 </div>
             </section>
@@ -678,18 +691,43 @@
             }
         }
 
+        function updateSmsRecipientCount() {
+            const deptGroup = document.getElementById('sms-filter-group').value;
+            const cgnGroup = document.getElementById('sms-filter-cgn').value;
+            
+            let targetMembers = members;
+            
+            if(deptGroup !== 'all') {
+                targetMembers = targetMembers.filter(m => m.dept === deptGroup);
+            }
+            if(cgnGroup !== 'all') {
+                targetMembers = targetMembers.filter(m => m.cgn === cgnGroup);
+            }
+            
+            const countEl = document.getElementById('sms-recipient-count');
+            if (countEl) {
+                countEl.innerText = `Wapokeaji: ${targetMembers.length}`;
+            }
+        }
+
         function triggerFilteredBulkSms() {
             const msg = document.getElementById('sms-message').value.trim();
-            const group = document.getElementById('sms-filter-group').value;
+            const deptGroup = document.getElementById('sms-filter-group').value;
+            const cgnGroup = document.getElementById('sms-filter-cgn').value;
+            
             if(!msg) { showToast("Andika ujumbe kwanza!", "error"); return; }
             
             let targetMembers = members;
-            if(group !== 'all') {
-                targetMembers = members.filter(m => m.dept === group || m.cgn === group);
+            
+            if(deptGroup !== 'all') {
+                targetMembers = targetMembers.filter(m => m.dept === deptGroup);
+            }
+            if(cgnGroup !== 'all') {
+                targetMembers = targetMembers.filter(m => m.cgn === cgnGroup);
             }
 
             if(targetMembers.length === 0) {
-                showToast("Hakuna washirika waliopatikana kwenye kundi hili!", "error");
+                showToast("Hakuna washirika waliopatikana kwenye mchujo huu!", "error");
                 return;
             }
 
@@ -728,6 +766,9 @@
                 dChart.data.datasets[0].data = [vijana, wamama, wanaume, watoto, kiongozi, wageniJiunga, wageniPita, washirikaSuasua];
                 dChart.update();
             }
+
+            // Inasasisha idadi ya wapokeaji kwenye Bulk SMS tab kila inapofanya update ya dashboard
+            updateSmsRecipientCount();
         }
 
         let gChart, dChart;
